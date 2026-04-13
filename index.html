@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>集中治療専門医試験 練習アプリ</title>
+<style>
+  :root {
+    --bg: #f5f7fa;
+    --card: #ffffff;
+    --primary: #1f6feb;
+    --primary-dark: #155ab6;
+    --accent: #0ead69;
+    --wrong: #d64545;
+    --text: #1f2328;
+    --muted: #6b7280;
+    --border: #e3e6eb;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+  header {
+    background: var(--primary);
+    color: #fff;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  header h1 { margin: 0; font-size: 18px; font-weight: 600; }
+  header .stats { font-size: 13px; opacity: 0.95; }
+  main {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 0 16px 80px;
+  }
+  .year-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+    background: #fff;
+  }
+  .year-tabs button {
+    flex: 1;
+    padding: 10px 6px;
+    border: none;
+    background: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    transition: all 0.15s;
+    border-right: 1px solid var(--border);
+  }
+  .year-tabs button:last-child { border-right: none; }
+  .year-tabs button.active {
+    background: var(--primary);
+    color: #fff;
+  }
+  .year-tabs button:hover:not(.active) { background: #f0f3f9; }
+  .year-tabs .tab-badge {
+    display: block;
+    font-size: 11px;
+    font-weight: 400;
+    opacity: 0.8;
+  }
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+    align-items: center;
+  }
+  .toolbar button, .toolbar select {
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .toolbar button.primary {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+  .toolbar button:hover { filter: brightness(0.97); }
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 22px 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+  }
+  .q-number {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .q-stem {
+    white-space: pre-wrap;
+    margin-bottom: 14px;
+    font-size: 16px;
+  }
+  .q-footnote {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+  .q-image {
+    max-width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin: 10px 0;
+    display: block;
+  }
+  .choices {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0;
+  }
+  .choices li { margin: 8px 0; }
+  .choices label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    background: #fff;
+    transition: all 0.15s;
+  }
+  .choices label:hover { border-color: var(--primary); background: #f9fbff; }
+  .choices input { margin-top: 4px; }
+  .choices label.correct { background: #e6f9ef; border-color: var(--accent); }
+  .choices label.wrong { background: #fdecec; border-color: var(--wrong); }
+  .letter { display: inline-block; width: 22px; font-weight: 600; }
+  .actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+  .actions button {
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .btn-submit { background: var(--primary); color: #fff; }
+  .btn-submit:disabled { background: #cbd1d9; cursor: not-allowed; }
+  .btn-next { background: var(--accent); color: #fff; }
+  .btn-skip { background: #f2f3f5; color: var(--text); }
+  .explanation {
+    margin-top: 18px;
+    padding: 16px 18px;
+    border-left: 4px solid var(--primary);
+    background: #f6f9ff;
+    border-radius: 6px;
+    white-space: pre-wrap;
+    font-size: 14.5px;
+  }
+  .explanation h3 { margin: 0 0 10px; font-size: 15px; color: var(--primary-dark); }
+  .result-banner {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    margin-top: 14px;
+  }
+  .result-banner.ok { background: #e6f9ef; color: #0b7d42; }
+  .result-banner.ng { background: #fdecec; color: #a42a2a; }
+  .progress {
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+  .progress div {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s;
+  }
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .hint {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .q-jumper { padding: 8px 10px; font-size: 14px; }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    margin: 16px 0;
+  }
+  .summary-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+    border: 1.5px solid var(--border);
+  }
+  .summary-card .year { font-size: 18px; font-weight: 700; }
+  .summary-card .detail { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .summary-card .pct { font-size: 22px; font-weight: 700; margin-top: 4px; }
+  @media (max-width: 600px) {
+    main { padding: 0 10px 60px; }
+    .card { padding: 16px; }
+    header h1 { font-size: 16px; }
+    .year-tabs button { font-size: 12px; padding: 8px 4px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>集中治療専門医試験 練習アプリ</h1>
+  <div class="stats" id="stats"></div>
+</header>
+
+<main>
+  <div class="year-tabs" id="yearTabs"></div>
+
+  <div id="summaryArea" style="display:none;"></div>
+
+  <div id="quizPanel">
+    <div class="toolbar">
+      <button id="prevBtn">&larr; 前</button>
+      <button id="nextBtn">次 &rarr;</button>
+      <select id="jumper" class="q-jumper"></select>
+      <select id="modeSelect">
+        <option value="seq">順番に</option>
+        <option value="random">ランダム</option>
+        <option value="wrong">間違えた問題のみ</option>
+        <option value="unseen">未回答のみ</option>
+      </select>
+      <button id="shuffleBtn">シャッフル</button>
+      <button id="resetBtn">成績リセット</button>
+    </div>
+    <div class="progress"><div id="progressBar"></div></div>
+    <div class="meta-row">
+      <span id="metaLeft"></span>
+      <span id="metaRight"></span>
+    </div>
+    <div id="quizArea"></div>
+  </div>
+</main>
+
+<script>
+const STORAGE_KEY = 'icu_quiz_state_v2';
+const YEARS = ['2020','2021','2022','2023','2024'];
+
+let allData = {};       // year -> array of questions
+let questions = [];      // current year's questions
+let currentYear = '2022';
+let order = [];
+let cursor = 0;
+let selected = new Set();
+let submitted = false;
+let state = loadState();
+
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (s && s.results) return s;
+    // migrate from v1
+    const old = JSON.parse(localStorage.getItem('icu_quiz_state_v1'));
+    if (old && old.results) {
+      const migrated = { results: {} };
+      for (const [k,v] of Object.entries(old.results)) {
+        migrated.results[`2022_${k}`] = v;
+      }
+      return migrated;
+    }
+    return { results: {} };
+  } catch (e) {
+    return { results: {} };
+  }
+}
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function resultKey(q) {
+  return `${q.year}_${q.num}`;
+}
+
+function yearStats(yr) {
+  const qs = allData[yr] || [];
+  let answered = 0, correct = 0;
+  for (const q of qs) {
+    const r = state.results[resultKey(q)];
+    if (r) { answered++; if (r.correct) correct++; }
+  }
+  return { total: qs.length, answered, correct };
+}
+
+function statsSummary() {
+  const s = yearStats(currentYear);
+  return `${currentYear}年度: 回答 ${s.answered}/${s.total} ・ 正答 ${s.correct} (${s.answered ? Math.round(s.correct/s.answered*100) : 0}%)`;
+}
+
+function updateStats() {
+  document.getElementById('stats').textContent = statsSummary();
+  const pct = questions.length ? ((cursor+1) / Math.max(order.length,1)) * 100 : 0;
+  document.getElementById('progressBar').style.width = `${pct}%`;
+  document.getElementById('metaLeft').textContent = order.length ? `${cursor+1} / ${order.length}` : '0 / 0';
+  const curQ = currentQuestion();
+  document.getElementById('metaRight').textContent = curQ ? `問${curQ.num} (${curQ.year}年度)` : '';
+}
+
+function currentQuestion() {
+  if (!order.length) return null;
+  return questions[order[cursor]];
+}
+
+function buildOrder() {
+  const mode = document.getElementById('modeSelect').value;
+  let idxs = questions.map((_,i) => i);
+  if (mode === 'wrong') {
+    idxs = idxs.filter(i => {
+      const r = state.results[resultKey(questions[i])];
+      return r && !r.correct;
+    });
+  } else if (mode === 'unseen') {
+    idxs = idxs.filter(i => !state.results[resultKey(questions[i])]);
+  } else if (mode === 'random') {
+    for (let i = idxs.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random()*(i+1));
+      [idxs[i],idxs[j]] = [idxs[j],idxs[i]];
+    }
+  }
+  if (!idxs.length) idxs = questions.map((_,i)=>i);
+  order = idxs;
+  cursor = 0;
+  rebuildJumper();
+}
+
+function rebuildJumper() {
+  const sel = document.getElementById('jumper');
+  sel.innerHTML = '';
+  order.forEach((qIdx, i) => {
+    const q = questions[qIdx];
+    const r = state.results[resultKey(q)];
+    const mark = r ? (r.correct ? '\u2713' : '\u2717') : '\u30FB';
+    const o = document.createElement('option');
+    o.value = i;
+    o.textContent = `${mark} \u554F${q.num}`;
+    sel.appendChild(o);
+  });
+  sel.value = cursor;
+}
+
+function numAnswers(q) { return q.correct ? q.correct.length : 0; }
+
+function howManyText(q) {
+  const n = numAnswers(q);
+  if (n <= 1) return '1\u3064\u9078\u629e';
+  return `${n}\u3064\u9078\u629e`;
+}
+
+function buildYearTabs() {
+  const container = document.getElementById('yearTabs');
+  // Add summary tab
+  let html = '<button data-year="summary" class="">全体<span class="tab-badge">成績</span></button>';
+  for (const yr of YEARS) {
+    const s = yearStats(yr);
+    const pct = s.answered ? Math.round(s.correct/s.answered*100) : 0;
+    const badge = s.answered > 0 ? `${pct}%` : `${s.total}\u554F`;
+    html += `<button data-year="${yr}" class="${yr === currentYear ? 'active' : ''}">${yr}<span class="tab-badge">${badge}</span></button>`;
+  }
+  container.innerHTML = html;
+  container.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const yr = btn.dataset.year;
+      if (yr === 'summary') {
+        showSummary();
+        return;
+      }
+      switchYear(yr);
+    });
+  });
+}
+
+function switchYear(yr) {
+  currentYear = yr;
+  questions = allData[yr] || [];
+  document.getElementById('summaryArea').style.display = 'none';
+  document.getElementById('quizPanel').style.display = '';
+  buildYearTabs();
+  buildOrder();
+  render();
+}
+
+function showSummary() {
+  currentYear = '';
+  document.getElementById('quizPanel').style.display = 'none';
+  const area = document.getElementById('summaryArea');
+  area.style.display = '';
+  // Deactivate year tabs
+  document.querySelectorAll('.year-tabs button').forEach(b => {
+    b.classList.toggle('active', b.dataset.year === 'summary');
+  });
+
+  let totalAll = 0, answeredAll = 0, correctAll = 0;
+  let cardsHtml = '';
+  for (const yr of YEARS) {
+    const s = yearStats(yr);
+    totalAll += s.total; answeredAll += s.answered; correctAll += s.correct;
+    const pct = s.answered ? Math.round(s.correct/s.answered*100) : '-';
+    cardsHtml += `
+      <div class="summary-card">
+        <div class="year">${yr}</div>
+        <div class="pct" style="color:${s.answered ? (pct >= 70 ? 'var(--accent)' : pct >= 50 ? '#e6a817' : 'var(--wrong)') : 'var(--muted)'}">${pct}${s.answered ? '%' : ''}</div>
+        <div class="detail">${s.correct}/${s.answered} (${s.total}\u554F\u4E2D)</div>
+      </div>`;
+  }
+  const totalPct = answeredAll ? Math.round(correctAll/answeredAll*100) : 0;
+  area.innerHTML = `
+    <div class="card">
+      <h2 style="margin:0 0 6px;font-size:18px;">全体成績</h2>
+      <p style="color:var(--muted);margin:0 0 12px;">全${totalAll}\u554F \u30FB \u56DE\u7B54${answeredAll} \u30FB \u6B63\u7B54${correctAll} (${totalPct}%)</p>
+      <div class="summary-grid">${cardsHtml}</div>
+      <button onclick="if(confirm('\u5168\u5E74\u5EA6\u306E\u6210\u7E3E\u3092\u30EA\u30BB\u30C3\u30C8\u3057\u307E\u3059\u304B\uFF1F')){state={results:{}};saveState();showSummary();buildYearTabs();}" style="margin-top:12px;padding:8px 16px;border:1px solid var(--border);background:#fff;border-radius:8px;cursor:pointer;">全成績リセット</button>
+    </div>`;
+  document.getElementById('stats').textContent = `\u5168\u4F53: ${correctAll}/${answeredAll} (${totalPct}%)`;
+}
+
+function render() {
+  const q = currentQuestion();
+  selected = new Set();
+  submitted = false;
+  const area = document.getElementById('quizArea');
+  if (!q) {
+    area.innerHTML = '<div class="card">\u554F\u984C\u304C\u3042\u308A\u307E\u305B\u3093\u3002\u30E2\u30FC\u30C9\u3092\u5909\u66F4\u3057\u3066\u304F\u3060\u3055\u3044\u3002</div>';
+    updateStats();
+    return;
+  }
+  const multi = numAnswers(q) > 1;
+  const inputType = multi ? 'checkbox' : 'radio';
+  const hasChoices = q.choices && Object.keys(q.choices).length > 0;
+
+  let imgHtml = '';
+  if (q.question_images && q.question_images.length) {
+    imgHtml = q.question_images.map(p => `<img class="q-image" src="${p}" alt="question image">`).join('');
+  }
+
+  let footHtml = '';
+  if (q.footnotes && q.footnotes.length) {
+    footHtml = `<div class="q-footnote">${q.footnotes.join('<br>')}</div>`;
+  }
+
+  let choicesHtml = '';
+  if (hasChoices) {
+    choicesHtml = Object.entries(q.choices).map(([k,v]) => `
+      <li>
+        <label data-letter="${k}">
+          <input type="${inputType}" name="choice" value="${k}">
+          <span><span class="letter">${k}.</span>${escapeHtml(v)}</span>
+        </label>
+      </li>`).join('');
+  }
+
+  const rk = resultKey(q);
+  const prior = state.results[rk];
+  const priorText = prior ? `\uFF08\u524D\u56DE: ${prior.correct ? '\u6B63\u89E3\u2713' : '\u4E0D\u6B63\u89E3\u2717'}\uFF09` : '';
+
+  area.innerHTML = `
+    <div class="card">
+      <div class="q-number">\u554F ${q.num} (${q.year}\u5E74\u5EA6) \u30FB ${howManyText(q)} ${priorText}</div>
+      <div class="q-stem">${escapeHtml(q.stem)}</div>
+      ${footHtml}
+      ${imgHtml}
+      ${hasChoices ? `<ul class="choices">${choicesHtml}</ul>` : '<p style="color:var(--muted)">\uFF08\u9078\u629E\u80A2\u306F\u753B\u50CF\u3092\u53C2\u7167\u3057\u3066\u304F\u3060\u3055\u3044\uFF09</p>'}
+      <div class="actions">
+        ${hasChoices ? '<button class="btn-submit" id="submitBtn" disabled>\u56DE\u7B54\u3059\u308B</button>' : ''}
+        <button class="btn-skip" id="revealBtn">\u7B54\u3048\u3092\u898B\u308B</button>
+        <button class="btn-next" id="nextQBtn" style="display:none">\u6B21\u306E\u554F\u984C \u2192</button>
+      </div>
+      <div class="hint" id="hint">${hasChoices ? '\u9078\u629E\u3057\u3066\u304F\u3060\u3055\u3044' : ''}</div>
+      <div id="feedback"></div>
+    </div>
+  `;
+
+  if (hasChoices) {
+    area.querySelectorAll('input[name="choice"]').forEach(inp => {
+      inp.addEventListener('change', () => {
+        if (submitted) return;
+        if (inputType === 'radio') selected = new Set([inp.value]);
+        else { if (inp.checked) selected.add(inp.value); else selected.delete(inp.value); }
+        document.getElementById('submitBtn').disabled = selected.size === 0;
+        document.getElementById('hint').textContent = multi ? `${selected.size}/${numAnswers(q)} \u9078\u629E\u4E2D` : '1\u3064\u9078\u629E';
+      });
+    });
+    document.getElementById('submitBtn').addEventListener('click', () => grade(q));
+  }
+  document.getElementById('revealBtn').addEventListener('click', () => grade(q, true));
+  document.getElementById('nextQBtn').addEventListener('click', next);
+
+  updateStats();
+  rebuildJumper();
+  window.scrollTo(0, 0);
+}
+
+function grade(q, reveal=false) {
+  if (submitted) return;
+  submitted = true;
+  const correctSet = new Set(q.correct || []);
+  const area = document.getElementById('quizArea');
+  area.querySelectorAll('label[data-letter]').forEach(lab => {
+    const k = lab.dataset.letter;
+    lab.querySelector('input').disabled = true;
+    if (correctSet.has(k)) lab.classList.add('correct');
+    if (selected.has(k) && !correctSet.has(k)) lab.classList.add('wrong');
+  });
+
+  const isCorrect = !reveal &&
+    selected.size === correctSet.size &&
+    [...selected].every(s => correctSet.has(s));
+
+  if (!reveal) {
+    state.results[resultKey(q)] = { correct: isCorrect, selected: [...selected], ts: Date.now() };
+    saveState();
+  }
+
+  const banner = reveal
+    ? '<div class="result-banner">\u7B54\u3048\u3092\u8868\u793A\u3057\u307E\u3057\u305F</div>'
+    : (isCorrect
+      ? '<div class="result-banner ok">\u6B63\u89E3\uFF01 \uD83C\uDF89</div>'
+      : `<div class="result-banner ng">\u4E0D\u6B63\u89E3\u3002\u6B63\u89E3\u306F ${(q.correct||[]).join(', ')}</div>`);
+
+  const hasChoices = q.choices && Object.keys(q.choices).length > 0;
+  let choiceExp = '';
+  if (hasChoices) {
+    choiceExp = Object.entries(q.choices).map(([k, v]) => {
+      const mark = correctSet.has(k) ? '\u3007' : '\u00D7';
+      const raw = (q.explanations && q.explanations[k]) ? q.explanations[k] : '';
+      return `<div><strong>${k}. ${mark}</strong> ${escapeHtml(stripMark(raw))}</div>`;
+    }).join('');
+  } else if (q.correct && q.correct.length) {
+    choiceExp = `<div><strong>\u6B63\u89E3: ${q.correct.join(', ')}</strong></div>`;
+  }
+
+  let ansImgs = '';
+  if (q.answer_images && q.answer_images.length) {
+    ansImgs = q.answer_images.map(p => `<img class="q-image" src="${p}">`).join('');
+  }
+
+  document.getElementById('feedback').innerHTML = `
+    ${banner}
+    <div class="explanation">
+      <h3>\u89E3\u7B54\u30FB\u89E3\u8AAC</h3>
+      ${choiceExp}
+      ${q.general_explanation ? `<div style="margin-top:12px;">${escapeHtml(q.general_explanation)}</div>` : ''}
+      ${ansImgs}
+    </div>
+  `;
+  const submitBtn = document.getElementById('submitBtn');
+  if (submitBtn) submitBtn.style.display = 'none';
+  document.getElementById('revealBtn').style.display = 'none';
+  document.getElementById('nextQBtn').style.display = 'inline-block';
+  document.getElementById('hint').textContent = '';
+  updateStats();
+  rebuildJumper();
+  buildYearTabs();
+}
+
+function stripMark(s) { return s.replace(/^[\u3007\u25CB\u00D7]\s*/, '').trim(); }
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function next() {
+  if (cursor < order.length - 1) { cursor++; render(); }
+  else alert('\u6700\u5F8C\u306E\u554F\u984C\u3067\u3059\u3002');
+}
+function prev() { if (cursor > 0) { cursor--; render(); } }
+
+document.getElementById('nextBtn').addEventListener('click', next);
+document.getElementById('prevBtn').addEventListener('click', prev);
+document.getElementById('jumper').addEventListener('change', e => {
+  cursor = parseInt(e.target.value, 10);
+  render();
+});
+document.getElementById('modeSelect').addEventListener('change', () => { buildOrder(); render(); });
+document.getElementById('shuffleBtn').addEventListener('click', () => {
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [order[i],order[j]] = [order[j],order[i]];
+  }
+  cursor = 0;
+  rebuildJumper();
+  render();
+});
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if (confirm(`${currentYear}\u5E74\u5EA6\u306E\u6210\u7E3E\u3092\u30EA\u30BB\u30C3\u30C8\u3057\u307E\u3059\u304B\uFF1F`)) {
+    for (const q of questions) delete state.results[resultKey(q)];
+    saveState();
+    buildOrder();
+    render();
+    buildYearTabs();
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (e.key === 'ArrowRight') next();
+  else if (e.key === 'ArrowLeft') prev();
+  else if (e.key === 'Enter') {
+    const nxt = document.getElementById('nextQBtn');
+    const btn = document.getElementById('submitBtn');
+    if (nxt && nxt.style.display !== 'none') next();
+    else if (btn && !btn.disabled) btn.click();
+  }
+});
+
+fetch('questions.json')
+  .then(r => r.json())
+  .then(data => {
+    allData = data;
+    questions = allData[currentYear] || [];
+    buildYearTabs();
+    buildOrder();
+    render();
+  })
+  .catch(err => {
+    document.getElementById('quizArea').innerHTML =
+      `<div class="card">questions.json \u306E\u8AAD\u307F\u8FBC\u307F\u306B\u5931\u6557\u3057\u307E\u3057\u305F: ${err}<br>
+      <code>python3 -m http.server</code> \u306A\u3069\u30ED\u30FC\u30AB\u30EB\u30B5\u30FC\u30D0\u7D4C\u7531\u3067\u958B\u3044\u3066\u304F\u3060\u3055\u3044\u3002</div>`;
+  });
+</script>
+</body>
+</html>
